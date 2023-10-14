@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Chain } from "viem";
 import { publicClient } from "../lib/wagmi";
 import { RPS } from "../abis/RPS";

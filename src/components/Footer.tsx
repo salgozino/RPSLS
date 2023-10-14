@@ -1,6 +1,5 @@
 import { Grid, Typography } from "@mui/material";
 import { useTheme } from '@mui/material/styles';
-import React from "react";
 
 export default function Footer() {
     const theme = useTheme()
