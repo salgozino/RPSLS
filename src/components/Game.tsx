@@ -68,7 +68,7 @@ export function Game() {
         <Grid item sm={10}>
           <Typography variant="h4" marginBottom="20px">
             Let's Play{" "}
-            <a href={`https://goerli.etherscan.io/address/${gameId}`}>
+            <a href={`https://goerli.etherscan.io/address/${gameId}`} target="_blank">
               {gameId.slice(0, 6)}...{gameId.slice(-4,)}
             </a>
           </Typography>
@@ -92,7 +92,7 @@ export function Game() {
           <Typography>
             Game Open until:{" "}
             {deltaMinutes !== undefined ? (
-              now > 0 ? (
+              deltaMinutes > 0 ? (
                 balance && balance > 0 ? (
                   "The timeout function can be called!"
                 ) : (
@@ -102,7 +102,7 @@ export function Game() {
                 `The Game is opend for the next ${Math.floor(
                   deltaMinutes
                 )} minutes and ${Math.floor(
-                  (deltaMinutes - Math.floor(deltaMinutes)) * 60
+                  (-deltaMinutes + Math.floor(deltaMinutes)) * 60
                 )} seconds`
               )
             ) : (
@@ -143,30 +143,21 @@ export function Game() {
 
       {/* Creator solve the game */}
       {account &&
-      lastAction &&
-      timeout &&
-      // now < lastAction + timeout &&
+      creator &&
       balance &&
       balance > BigInt(0) &&
-      account.address === creator ? (
-        movePlayer2 !== undefined && movePlayer2 !== Move.Null ? (
+      account.address === creator &&
+      movePlayer2 !== undefined &&
+      (
           <SolveGame
             client={Client}
             walletClient={walletClient}
             gameId={gameId}
-            creator={creator}
             balance={balance}
             movePlayer2={movePlayer2}
           />
-        ) : (
-          <Typography>
-            Please wait until Player 2 make it's move. There is time until{" "}
-            {lastAction && timeout
-              ? (lastAction + timeout).toString()
-              : "-- loading end date --"}
-          </Typography>
-        )
-      ) : null}
+      )
+      }
       {/* Timeout */}
       {account &&
         (account.address === creator || account.address === player2) && // only can be called by Player 1 or 2
