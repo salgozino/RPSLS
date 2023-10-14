@@ -18,6 +18,7 @@ import {
 } from "@mui/material";
 import { moves } from "../lib/moves";
 import CopyToClipboardButton from "./CopyToClipboardButton";
+import { useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 
 export function NewGame() {
   const chain = chains[0];
@@ -31,6 +32,8 @@ export function NewGame() {
 
   const [receipt, setReceipt] = useState<TransactionReceipt>();
   const [txHash, setTxHash] = useState<Hash>();
+
+  const addRecentTransaction = useAddRecentTransaction();
 
   useEffect(() => {
     if (currentMove) {
@@ -57,6 +60,11 @@ export function NewGame() {
         value: parseEther(bet, "wei"),
       });
       setTxHash(hash);
+      addRecentTransaction({
+        hash: hash,
+        description: "Create game",
+        confirmations: 1
+      })
     }
   }
 

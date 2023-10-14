@@ -34,7 +34,7 @@ const router = createBrowserRouter([
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <WagmiConfig config={wagmiConfig}>
-      <RainbowKitProvider chains={chains}>
+      <RainbowKitProvider chains={chains} showRecentTransactions={true}>
         <ThemeProvider theme={theme}/>
         <CssBaseline />
         <RouterProvider router={router} />

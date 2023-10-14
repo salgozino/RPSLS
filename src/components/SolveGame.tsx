@@ -4,7 +4,7 @@ import { Hash, PublicClient, TransactionReceipt } from "viem";
 import { RPS } from "../abis/RPS";
 import { Box, Button, Link, Skeleton, Typography } from "@mui/material";
 import { Move } from "../lib/types";
-
+import { useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 
 export default function SolveGame({
   client,
@@ -25,7 +25,8 @@ export default function SolveGame({
   const [receiptSolve, setReceiptSolve] = useState<TransactionReceipt>();
 
   const account = getAccount();
-  console.log(account, creator)
+
+  const addRecentTransaction = useAddRecentTransaction();
 
   useEffect(() => {
     (async () => {
@@ -49,7 +50,13 @@ export default function SolveGame({
         functionName: "solve",
         args: [Number(movePlayer1), BigInt(JSON.parse(saltPlayer1))],
       });
-      setHashSolve(await walletClient.writeContract(request));
+      const _hash = await walletClient.writeContract(request);
+      setHashSolve(_hash);
+      addRecentTransaction({
+        hash: _hash,
+        description: "Solve",
+        confirmations: 1,
+      });
     }
   }
 

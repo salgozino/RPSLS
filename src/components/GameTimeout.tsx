@@ -3,6 +3,7 @@ import { Hash, PublicClient, TransactionReceipt } from "viem";
 import { GetWalletClientResult, getAccount } from "wagmi/actions";
 import { RPS } from "../abis/RPS";
 import { Button, Skeleton, Typography } from "@mui/material";
+import { useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 
 export default function GameTimeout({
   client,
@@ -28,6 +29,8 @@ export default function GameTimeout({
   const [hashTimeout, setHashTimeout] = useState<Hash>();
   const [receiptTimeout, setReceiptTimeout] = useState<TransactionReceipt>();
   const account = getAccount();
+
+  const addRecentTransaction = useAddRecentTransaction();
 
   const isTimeout = lastAction + timeout < now;
 
@@ -60,9 +63,16 @@ export default function GameTimeout({
         account: account.address,
         address: gameId,
         abi: RPS.abi,
-        functionName: player == "Player1" ? "j1Timeout" : "j2Timeout",
+        functionName: player === "Player1" ? "j1Timeout" : "j2Timeout",
       });
-      setHashTimeout(await walletClient.writeContract(request));
+      const _hash = await walletClient.writeContract(request);
+      
+      setHashTimeout(_hash);
+      addRecentTransaction({
+        hash: _hash,
+        description: `Timeout ${player}`,
+        confirmations: 1
+      })
     }
   }
 

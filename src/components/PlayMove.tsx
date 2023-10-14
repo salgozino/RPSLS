@@ -6,6 +6,7 @@ import { Button, Grid, Skeleton, Typography } from "@mui/material";
 import { moves } from "../lib/moves";
 import { useAccount } from "wagmi";
 import { GetWalletClientResult } from "wagmi/actions";
+import { useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 
 export default function PlayMove({
   client,
@@ -23,6 +24,8 @@ export default function PlayMove({
   const [currentMove, setCurrentMove] = useState<Move>(Move.Null);
 
   const account = useAccount();
+
+  const addRecentTransaction = useAddRecentTransaction();
 
   useEffect(() => {
     (async () => {
@@ -54,7 +57,13 @@ export default function PlayMove({
         value: stake,
       });
 
-      setHashMove(await walletClient.writeContract(request));
+      const _hash = await walletClient.writeContract(request)
+      setHashMove(_hash);
+      addRecentTransaction({
+        hash: _hash,
+        description: "Player2 Move",
+        confirmations: 1,
+      })
     }
   }
   return (
