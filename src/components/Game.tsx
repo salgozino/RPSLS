@@ -1,11 +1,6 @@
 import { useParams } from "react-router-dom";
 import { Move } from "../lib/types";
-import {
-  Grid,
-  Link,
-  Skeleton,
-  Typography,
-} from "@mui/material";
+import { Grid, Link, Skeleton, Typography } from "@mui/material";
 import { useWalletClient } from "wagmi";
 import { chains, publicClient } from "../lib/wagmi";
 import useGameStake from "../hooks/useGameStake";
@@ -26,20 +21,31 @@ import CopyToClipboardButton from "./CopyToClipboardButton";
 export function Game() {
   const { gameId: _gameId } = useParams();
   const gameId = _gameId as `0x${string}`;
-  // TODO: validate gameId!
+
   const chain = chains[0];
   const Client = publicClient({ chainId: Number(chain.id) });
   const account = getAccount();
-
   const { data: walletClient } = useWalletClient({ chainId: chain.id });
-  const { stake } = useGameStake(chain, gameId);
-  const { creator } = useGameCreator(chain, gameId);
+  const {
+    stake,
+    loading: loadingStake,
+    error: stakeError,
+  } = useGameStake(chain, gameId);
+  const {
+    creator,
+    loading: loadingCreator,
+    error: creatorError,
+  } = useGameCreator(chain, gameId);
   const { player: player2 } = useGamePlayer2(chain, gameId);
   const { movePlayer2 } = useGameMovePlayer2(chain, gameId);
   const { timeout } = useGameTimeout(chain, gameId);
   const { lastAction } = useGameLastAction(chain, gameId);
   const { balance } = useGameBalance(chain, gameId);
 
+  const isValidGame =
+    !loadingCreator && !loadingStake
+      ? stakeError === undefined && creatorError === undefined
+      : undefined;
   const [deltaMinutes, setDeltaMinutes] = useState<number>();
   const [now, setNow] = useState<number>(Date.now() / 1000);
 
@@ -68,117 +74,123 @@ export function Game() {
         <Grid item sm={10}>
           <Typography variant="h4" marginBottom="20px">
             Let's Play{" "}
-            <a href={`https://goerli.etherscan.io/address/${gameId}`} target="_blank">
-              {gameId.slice(0, 6)}...{gameId.slice(-4,)}
+            <a
+              href={`https://goerli.etherscan.io/address/${gameId}`}
+              target="_blank"
+            >
+              {gameId.slice(0, 6)}...{gameId.slice(-4)}
             </a>
           </Typography>
         </Grid>
         <Grid item sm={2}>
-          <CopyToClipboardButton text='Share Game' />
+          <CopyToClipboardButton text="Share Game" />
         </Grid>
       </Grid>
-      <Grid container marginBottom="20px">
-        <Grid item sm={12} md={6}>
-          <Typography>
-            Game Balance:{" "}
-            {balance !== undefined ? (
-              `${formatEther(balance)} ETH`
-            ) : (
-              <Skeleton variant="circular" width={"50px"} height={"50px"} />
-            )}
-          </Typography>
-        </Grid>
-        <Grid item sm={12} md={6}>
-          <Typography>
-            Game Open until:{" "}
-            {deltaMinutes !== undefined ? (
-              deltaMinutes > 0 ? (
-                balance && balance > 0 ? (
-                  "The timeout function can be called!"
+      {isValidGame === true && (
+        <>
+          <Grid container marginBottom="20px">
+            <Grid item sm={12} md={6}>
+              <Typography>
+                Game Balance:{" "}
+                {balance !== undefined ? (
+                  `${formatEther(balance)} ETH`
                 ) : (
-                  "Game closed"
-                )
-              ) : (
-                `The Game is opend for the next ${Math.floor(
-                  deltaMinutes
-                )} minutes and ${Math.floor(
-                  (-deltaMinutes + Math.floor(deltaMinutes)) * 60
-                )} seconds`
-              )
-            ) : (
-              <Skeleton variant="circular" width={"50px"} height={"50px"} />
+                  <Skeleton variant="circular" width={"50px"} height={"50px"} />
+                )}
+              </Typography>
+            </Grid>
+            <Grid item sm={12} md={6}>
+              <Typography>
+                Game Open until:
+                {deltaMinutes !== undefined ? (
+                  deltaMinutes > 0 ? (
+                    balance && balance > 0 ? (
+                      "The timeout function can be called!"
+                    ) : (
+                      "Game closed"
+                    )
+                  ) : (
+                    `The Game is opend for the next ${Math.floor(
+                      deltaMinutes
+                    )} minutes and ${Math.floor(
+                      (-deltaMinutes + Math.floor(deltaMinutes)) * 60
+                    )} seconds`
+                  )
+                ) : (
+                  <Skeleton variant="circular" width={"50px"} height={"50px"} />
+                )}
+              </Typography>
+            </Grid>
+            {balance === BigInt(0) && (
+              <Typography>This game has finished!</Typography>
             )}
-          </Typography>
-        </Grid>
-        {balance === BigInt(0) && (
-          <Typography>This game has finished!</Typography>
-        )}
-      </Grid>
+          </Grid>
 
-      {/* Player 2 move */}
-      {account &&
-        player2 &&
-        account.address === player2 &&
-        stake &&
-        balance &&
-        balance > BigInt(0) &&
-        movePlayer2 === Move.Null && (
-          <PlayMove
-            client={Client}
-            walletClient={walletClient}
-            gameId={gameId}
-            stake={stake}
-          />
-        )}
-      {account &&
-        player2 &&
-        account.address !== player2 &&
-        creator &&
-        account.address !== creator && (
-          <Typography>
-            Only {player2} or {creator} can play this game 😭. Go the the{" "}
-            <Link href="/">Home Page</Link> and create a new game!
-          </Typography>
-        )}
+          {/* Player 2 Move */}
+          {account &&
+            player2 &&
+            account.address === player2 &&
+            stake &&
+            balance &&
+            balance > BigInt(0) &&
+            movePlayer2 === Move.Null && (
+              <PlayMove
+                client={Client}
+                walletClient={walletClient}
+                gameId={gameId}
+                stake={stake}
+              />
+            )}
+          {account &&
+            player2 &&
+            account.address !== player2 &&
+            creator &&
+            account.address !== creator && (
+              <Typography>
+                Only {player2} or {creator} can play this game 😭. Go the the{" "}
+                <Link href="/">Home Page</Link> and create a new game!
+              </Typography>
+            )}
 
-      {/* Creator solve the game */}
-      {account &&
-      creator &&
-      balance &&
-      balance > BigInt(0) &&
-      account.address === creator &&
-      movePlayer2 !== undefined &&
-      (
-          <SolveGame
-            client={Client}
-            walletClient={walletClient}
-            gameId={gameId}
-            balance={balance}
-            movePlayer2={movePlayer2}
-          />
-      )
-      }
-      {/* Timeout */}
-      {account &&
-        (account.address === creator || account.address === player2) && // only can be called by Player 1 or 2
-        lastAction &&
-        timeout &&
-        movePlayer2 !== undefined &&
-        now > lastAction + timeout &&
-        balance &&
-        balance > 0 && (
-          <GameTimeout
-            client={Client}
-            walletClient={walletClient}
-            gameId={gameId}
-            creator={creator}
-            player2={player2}
-            player={movePlayer2 !== Move.Null ? "Player2" : "Player1"}
-            lastAction={lastAction}
-            now={now}
-            timeout={timeout}
-          />
-        )}
+          {/* Creator solve the game */}
+          {account &&
+            creator &&
+            balance &&
+            balance > BigInt(0) &&
+            account.address === creator &&
+            movePlayer2 !== undefined && (
+              <SolveGame
+                client={Client}
+                walletClient={walletClient}
+                gameId={gameId}
+                balance={balance}
+                movePlayer2={movePlayer2}
+              />
+            )}
+          {/* Timeout */}
+          {account &&
+            (account.address === creator || account.address === player2) && // only can be called by Player 1 or 2
+            lastAction &&
+            timeout &&
+            movePlayer2 !== undefined &&
+            now > lastAction + timeout &&
+            balance &&
+            balance > 0 && (
+              <GameTimeout
+                client={Client}
+                walletClient={walletClient}
+                gameId={gameId}
+                creator={creator}
+                player2={player2}
+                player={movePlayer2 !== Move.Null ? "Player2" : "Player1"}
+                lastAction={lastAction}
+                now={now}
+                timeout={timeout}
+              />
+            )}
+        </>
+      )}
+      {isValidGame === false && <Typography>This is not a valid game!</Typography>}
     </>
   );
 }

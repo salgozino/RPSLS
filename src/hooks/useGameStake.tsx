@@ -7,14 +7,20 @@ export default function useGameStake(chain: Chain, gameId: `0x${string}`) {
   const Client = publicClient({ chainId: Number(chain.id) });
   const [stake, setStake] = useState<bigint>();
   const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | undefined>(undefined);
 
   Client.readContract({
     address: gameId,
     abi: RPS.abi,
     functionName: "stake",
-  }).then((stake) => {
-    setStake(stake);
-    setLoading(false);
-});
-  return {stake: stake, loading: loading};
+  })
+    .then((stake) => {
+      setStake(stake);
+      setLoading(false);
+    })
+    .catch((e) => {
+      setError(e.message);
+    });
+
+  return { stake: stake, loading: loading, error: error };
 }
