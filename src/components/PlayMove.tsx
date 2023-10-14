@@ -77,7 +77,7 @@ export default function PlayMove({
                         }}
                         variant="contained"
                         color={
-                          currentMove == move.value ? "primary" : "secondary"
+                          currentMove == move.value ? "success" : "error"
                         }
                       >
                         {move.title}
@@ -87,8 +87,9 @@ export default function PlayMove({
                 );
               })}
             </Grid>
-            {account.isConnected && stake ? (
+            {account.isConnected && stake && currentMove !== Move.Null ? (
               <>
+              {/* TODO: Check if user has the balance to stake */}
                 <Button onClick={play} variant='contained' disabled={receiptMove !== undefined}>
                   Send Move ({formatEther(stake)} ETH)
                 </Button>
@@ -105,8 +106,11 @@ export default function PlayMove({
                   </>
                 )}
               </>
-            ) : (
-              <>Please connect to deploy the contract</>
+            ) : 
+            account.isConnected
+            ? <Typography>Please select your move</Typography>
+            :(
+              <Typography>Please connect to deploy the contract</Typography>
             )}
           </>
   );

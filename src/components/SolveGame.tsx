@@ -59,9 +59,13 @@ export default function SolveGame({
   return (
           <>
           <Box>
+            {movePlayer2 !== Move.Null ?
             <Typography>
-              Time to solve the game!. Player 2 has moved with {Move[movePlayer2]} and your move was {Move[Number(movePlayer1)]}
+              Time to solve the game!. Player 2 has moved with {Move[movePlayer2]}, let's discover Player1 move and solve this game
             </Typography>
+            :
+            <Typography>Please wait until Player 2 make it's move</Typography>
+            }
             </Box>
             <Box>
             {account.address === creator ? <Button onClick={solve} variant="contained">Solve Game</Button>: `Only ${creator} can solve this game`}
