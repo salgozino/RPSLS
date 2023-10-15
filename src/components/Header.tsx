@@ -2,15 +2,13 @@ import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { Container, Grid, Link, styled } from "@mui/material";
-
-const Offset = styled('div')(({ theme }) => theme.mixins.toolbar);
+import { Container, Grid, Link } from "@mui/material";
 
 
 export default function ButtonAppBar() {
   return (
     <>
-    <AppBar position="fixed">
+    <AppBar position='sticky' sx={{alignSelf: 'flex-start'}}>
       <Container>
         <Toolbar>
           <Grid container spacing={2} justifyContent={'space-between'}>
@@ -28,7 +26,6 @@ export default function ButtonAppBar() {
         </Toolbar>
       </Container> 
     </AppBar>
-    <Offset />
     </>
   );
 }

@@ -7,6 +7,11 @@ const theme = createTheme({
 				maxWidth: false,
 			},
 		},
+		MuiCssBaseline : {
+			styleOverrides: () => ({
+				display: 'flex',
+			  }),
+		}
     }
 })
 

@@ -90,10 +90,13 @@ export function NewGame() {
   }
 
   return (
-    <>
+    <Grid container justifyContent={'center'}>
+      <Grid item xs={12}>
       <Typography variant={"h3"} sx={{ marginBottom: "20px" }}>
         New Game
       </Typography>
+      </Grid>
+
       <form>
         <Grid container justifyContent="center" spacing={4}>
           <Grid item sm={12} md={8}>
@@ -129,15 +132,17 @@ export function NewGame() {
           </Grid>
         </Grid>
       </form>
+
       <Grid
         container
         spacing={2}
         justifyContent={"center"}
         alignContent={"center"}
+        textAlign={'center'}
       >
         {moves.map((move) => {
           return (
-            <Grid item xs={12} md={2} container key={"selector-" + move.title}>
+            <Grid item xs={12} md={2} container key={"selector-" + move.title} justifyContent={'center'}>
               <Grid item xs={12}>
                 <img src={move.src} width={"100px"} height={"100px"} />
               </Grid>
@@ -159,7 +164,7 @@ export function NewGame() {
           );
         })}
       </Grid>
-      <Box marginTop={"20px"} marginLeft={"10%"} width={"80%"}>
+      <Grid item xs={12} marginTop={"20px"} marginLeft={"10%"} width={"80%"}>
         {account &&
         account?.isConnected &&
         isAddress(player2) &&
@@ -202,7 +207,7 @@ export function NewGame() {
         ) : (
           "Please connect your wallet to create a Game"
         )}
-      </Box>
-    </>
+      </Grid>
+    </Grid>
   );
 }
