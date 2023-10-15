@@ -8,7 +8,6 @@ import { Move } from "../lib/types";
 import { getRandomSalt, hashMove } from "../lib/utils";
 import {
   Alert,
-  Box,
   Button,
   Grid,
   InputAdornment,
