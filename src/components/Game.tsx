@@ -110,10 +110,10 @@ export function Game() {
                       "Game closed"
                     )
                   ) : (
-                    `The Game is opend for the next ${Math.floor(
+                    `The Game is opend for the next ${-Math.floor(
                       deltaMinutes
-                    )} minutes and ${Math.floor(
-                      (-deltaMinutes + Math.floor(deltaMinutes)) * 60
+                    )} minutes and ${-Math.floor(
+                      -(deltaMinutes - Math.floor(deltaMinutes)) * 60
                     )} seconds`
                   )
                 ) : (
