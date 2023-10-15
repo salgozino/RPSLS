@@ -7,6 +7,7 @@ import { chains, publicClient } from "../lib/wagmi";
 import { Move } from "../lib/types";
 import { getRandomSalt, hashMove } from "../lib/utils";
 import {
+  Alert,
   Box,
   Button,
   Grid,
@@ -31,6 +32,7 @@ export function NewGame() {
   const [currentMove, setCurrentMove] = useState<Move>(Move.Null);
 
   const [receipt, setReceipt] = useState<TransactionReceipt>();
+  const [receiptError, setReceiptError] = useState<string>();
   const [txHash, setTxHash] = useState<Hash>();
 
   const addRecentTransaction = useAddRecentTransaction();
@@ -49,22 +51,27 @@ export function NewGame() {
 
   async function deployContract() {
     if (player2 && walletClient && currentMove !== Move.Null && account) {
-      const salt = getRandomSalt();
-      setSalt(salt);
-      const _c1Hash = hashMove(currentMove, salt);
-      const hash = await walletClient?.deployContract({
-        abi: RPS.abi,
-        account: account.address,
-        bytecode: RPS.bytecode as `0x${string}`,
-        args: [_c1Hash, player2],
-        value: parseEther(bet, "wei"),
-      });
-      setTxHash(hash);
-      addRecentTransaction({
-        hash: hash,
-        description: "Create game",
-        confirmations: 1
-      })
+      try {
+        const salt = getRandomSalt();
+        setSalt(salt);
+        const _c1Hash = hashMove(currentMove, salt);
+        const hash = await walletClient?.deployContract({
+          abi: RPS.abi,
+          account: account.address,
+          bytecode: RPS.bytecode as `0x${string}`,
+          args: [_c1Hash, player2],
+          value: parseEther(bet, "wei"),
+        });
+        setTxHash(hash);
+        addRecentTransaction({
+          hash: hash,
+          description: "Create game",
+          confirmations: 1,
+        });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (e: any) {
+        setReceiptError(e.message);
+      }
     }
   }
 
@@ -90,11 +97,11 @@ export function NewGame() {
   }
 
   return (
-    <Grid container justifyContent={'center'}>
+    <Grid container justifyContent={"center"}>
       <Grid item xs={12}>
-      <Typography variant={"h3"} sx={{ marginBottom: "20px" }}>
-        New Game
-      </Typography>
+        <Typography variant={"h3"} sx={{ marginBottom: "20px" }}>
+          New Game
+        </Typography>
       </Grid>
 
       <form>
@@ -138,11 +145,18 @@ export function NewGame() {
         spacing={2}
         justifyContent={"center"}
         alignContent={"center"}
-        textAlign={'center'}
+        textAlign={"center"}
       >
         {moves.map((move) => {
           return (
-            <Grid item xs={12} md={2} container key={"selector-" + move.title} justifyContent={'center'}>
+            <Grid
+              item
+              xs={12}
+              md={2}
+              container
+              key={"selector-" + move.title}
+              justifyContent={"center"}
+            >
               <Grid item xs={12}>
                 <img src={move.src} width={"100px"} height={"100px"} />
               </Grid>
@@ -191,16 +205,21 @@ export function NewGame() {
               </>
             ) : null}
             {receipt && (
-              <>
-                <div>
+              <Alert severity="success">
+                <Typography>
                   Game created! Contract Address: {receipt.contractAddress}{" "}
-                </div>
+                </Typography>
                 <Link href={`/game/${receipt.contractAddress}`}>
                   <Button variant="contained">Go to Game</Button>
                 </Link>
-                <CopyToClipboardButton text='Copy Contract Address to Clipboard' />
-              </>
+                <CopyToClipboardButton text="Copy Contract Address to Clipboard" />
+              </Alert>
             )}
+            {receiptError && (
+            <Alert severity="error">
+              An error ocurred while performing the transaction: {receiptError}
+            </Alert>
+          )}
           </>
         ) : account && account?.isConnected ? (
           "Please review the input data in order to create a game. A valid address, a bet and a move are required."

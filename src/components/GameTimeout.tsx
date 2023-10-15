@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Hash, PublicClient, TransactionReceipt } from "viem";
 import { GetWalletClientResult, getAccount } from "wagmi/actions";
 import { RPS } from "../abis/RPS";
-import { Button, Skeleton, Typography } from "@mui/material";
+import { Alert, Button, Skeleton, Typography } from "@mui/material";
 import { useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 
 export default function GameTimeout({
@@ -28,21 +28,26 @@ export default function GameTimeout({
 }) {
   const [hashTimeout, setHashTimeout] = useState<Hash>();
   const [receiptTimeout, setReceiptTimeout] = useState<TransactionReceipt>();
+  const [receiptError, setReceiptError] = useState<string>();
   const account = getAccount();
 
   const addRecentTransaction = useAddRecentTransaction();
 
   const isTimeout = lastAction + timeout < now;
 
-
   useEffect(() => {
     (async () => {
       if (hashTimeout) {
-        const receipt = await client.waitForTransactionReceipt({
-          hash: hashTimeout,
-          timeout: 60 * 1000,
-        });
-        setReceiptTimeout(receipt);
+        try {
+          const receipt = await client.waitForTransactionReceipt({
+            hash: hashTimeout,
+            timeout: 60 * 1000,
+          });
+          setReceiptTimeout(receipt);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (e: any) {
+          setReceiptError(e.message);
+        }
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -66,13 +71,13 @@ export default function GameTimeout({
         functionName: player === "Player1" ? "j1Timeout" : "j2Timeout",
       });
       const _hash = await walletClient.writeContract(request);
-      
+
       setHashTimeout(_hash);
       addRecentTransaction({
         hash: _hash,
         description: `Timeout ${player}`,
-        confirmations: 1
-      })
+        confirmations: 1,
+      });
     }
   }
 
@@ -80,16 +85,20 @@ export default function GameTimeout({
     <>
       {isTimeout ? (
         player === "Player1" ? (
-          account.address === player2 ?
-          <Typography>Hurry!, we are in overtime!, player 1 can call timeout function! </Typography>
-          :
+          account.address === player2 ? (
+            <Typography>
+              Hurry!, we are in overtime!, player 1 can call timeout function!{" "}
+            </Typography>
+          ) : (
+            <Typography>
+              Player2 has not made her move!. It's time to recover the stake!
+            </Typography>
+          )
+        ) : account.address == creator ? (
           <Typography>
-            Player2 has not made her move!. It's time to recover the stake!
+            Hurry!, we are in overtime!, player 2 can call the timeout function!
           </Typography>
-        ) :
-        ( account.address == creator ?
-          <Typography>Hurry!, we are in overtime!, player 2 can call the timeout function!</Typography>
-          :
+        ) : (
           <Typography>
             Player 1 has not solved the game!. It's time to close the game by
             timeout!
@@ -107,16 +116,25 @@ export default function GameTimeout({
           Solve Game by Timeout
         </Button>
       )}
-      {account.address !== creator && account.address !== player2 && isTimeout && (
-        <Typography>Only {player == "Player1" ? creator : player2} can call the Timeout function. If you are the owner of this wallet, please connect with it.</Typography>
-      )}
+      {account.address !== creator &&
+        account.address !== player2 &&
+        isTimeout && (
+          <Typography>
+            Only {player == "Player1" ? creator : player2} can call the Timeout
+            function. If you are the owner of this wallet, please connect with
+            it.
+          </Typography>
+        )}
       {!receiptTimeout && hashTimeout && (
         <Skeleton width={"50px"} height={"50px"} variant="circular" />
       )}
       {receiptTimeout && (
-        <Typography>
+        <Alert severity="success">
           Done!, you have received all the money at stake!.
-        </Typography>
+        </Alert>
+      )}
+      {receiptError && (
+        <Alert severity="error">An error ocurred while performing the transaction: {receiptError}</Alert>
       )}
     </>
   );

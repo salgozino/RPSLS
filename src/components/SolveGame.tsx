@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { GetWalletClientResult, getAccount } from "wagmi/actions";
 import { Hash, PublicClient, TransactionReceipt } from "viem";
 import { RPS } from "../abis/RPS";
-import { Box, Button, Link, Skeleton, Typography } from "@mui/material";
+import { Alert, Box, Button, Link, Skeleton, Typography } from "@mui/material";
 import { Move } from "../lib/types";
 import { useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 
@@ -23,6 +23,7 @@ export default function SolveGame({
 
   const [hashSolve, setHashSolve] = useState<Hash>();
   const [receiptSolve, setReceiptSolve] = useState<TransactionReceipt>();
+  const [receiptError, setReceiptError] = useState<string>();
 
   const account = getAccount();
 
@@ -31,11 +32,16 @@ export default function SolveGame({
   useEffect(() => {
     (async () => {
       if (hashSolve) {
-        const receipt = await client.waitForTransactionReceipt({
-          hash: hashSolve,
-          timeout: 60 * 1000,
-        });
-        setReceiptSolve(receipt);
+        try {
+          const receipt = await client.waitForTransactionReceipt({
+            hash: hashSolve,
+            timeout: 60 * 1000,
+          });
+          setReceiptSolve(receipt);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (e: any) {
+          setReceiptError(e.message);
+        }
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -74,13 +80,13 @@ export default function SolveGame({
       </Box>
 
       <Box>
-          <Button
-            onClick={solve}
-            variant="contained"
-            disabled={movePlayer2 === Move.Null}
-          >
-            Solve Game
-          </Button>
+        <Button
+          onClick={solve}
+          variant="contained"
+          disabled={movePlayer2 === Move.Null}
+        >
+          Solve Game
+        </Button>
       </Box>
 
       <Box>
@@ -88,10 +94,15 @@ export default function SolveGame({
           <Skeleton width={"50px"} height={"50px"} variant="circular" />
         )}
         {receiptSolve && (
-          <Typography>
+          <Alert severity="success">
             Game Solved!. Thanks for playing!. You can go to the{" "}
             <Link href="/">Home Page</Link> to create a new game.
-          </Typography>
+          </Alert>
+        )}
+        {receiptError && (
+          <Alert severity="error">
+            An error ocurred while performing the transaction: {receiptError}
+          </Alert>
         )}
       </Box>
     </>
