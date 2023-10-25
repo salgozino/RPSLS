@@ -67,7 +67,7 @@ export function NewGame() {
           description: "Create game",
           confirmations: 1,
         });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (e: any) {
         setReceiptError(e.message);
       }
@@ -102,7 +102,6 @@ export function NewGame() {
           New Game
         </Typography>
       </Grid>
-
       <form>
         <Grid container justifyContent="center" spacing={4}>
           <Grid item sm={12} md={8}>
@@ -190,6 +189,10 @@ export function NewGame() {
               Your move is {Move[currentMove]} but will be keeped secret until
               Player2 make it's move. Press the button to create the game.
             </Typography>
+            <Alert severity="warning">
+              This site only support to create 1 game at the time. If you create
+              more than 1, will be only possible to solve the last created game
+            </Alert>
             <Button
               variant="contained"
               onClick={deployContract}
@@ -215,10 +218,11 @@ export function NewGame() {
               </Alert>
             )}
             {receiptError && (
-            <Alert severity="error">
-              An error ocurred while performing the transaction: {receiptError}
-            </Alert>
-          )}
+              <Alert severity="error">
+                An error ocurred while performing the transaction:{" "}
+                {receiptError}
+              </Alert>
+            )}
           </>
         ) : account && account?.isConnected ? (
           "Please review the input data in order to create a game. A valid address, a bet and a move are required."
